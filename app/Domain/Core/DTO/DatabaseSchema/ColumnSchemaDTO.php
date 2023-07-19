@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Domain\Core\DTO;
+namespace App\Domain\Core\DTO\DatabaseSchema;
 
 use Spatie\LaravelData\Attributes\MapInputName;
 use Spatie\LaravelData\Data;

@@ -2,6 +2,7 @@
 
 namespace App\Domain\CMS\DTO\Components;
 
+use App\Domain\Core\DTO\DatabaseSchema\ForeignKeySchemaDTO;
 use Illuminate\Support\Str;
 use Spatie\LaravelData\Attributes\MapInputName;
 use Spatie\LaravelData\Data;
@@ -18,7 +19,10 @@ class ComponentStoreDTO extends Data
     public function __construct(
         public string $name,
         public string $categoryName,
-        public ?string $icon = ''
+        /** @var \App\Domain\Core\DTO\DatabaseSchema\ForeignKeySchemaDTO[] */
+        public array $columns,
+
+        public ?string $icon = '',
     )
     {
     }
