@@ -23,7 +23,8 @@
     },
     "autoload": {
          "files": [
-            "app/Domain/Core/Helpers/database.php"
+            "app/Domain/Core/Helpers/database.php",
+            "app/Support/helpers.php"
         ],
         "psr-4": {
             "App\\": "app/",

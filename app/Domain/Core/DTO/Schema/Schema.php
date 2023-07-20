@@ -11,13 +11,14 @@ class Schema extends Data
 {
     public function __construct(
         public string $collectionName,
+        public SchemaKind $kind,
         public InfoDTO $info,
-        public array $options,
+        public OptionsDTO $options,
         /** @var AttributeDTO[] */
         public array $attributes,
+        public PluginOptionsDTO $pluginOptions,
     )
     {
-
     }
 
 }

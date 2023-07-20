@@ -2,6 +2,7 @@
 
 namespace App\Domain\Core\Models;
 
+use App\Domain\Core\DTO\SchemaSettings\SettingDTO;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -27,7 +28,7 @@ class StoreSetting extends Model
      */
     protected $casts = [
         'deleted_at' => 'datetime',
-        'value' => 'json',
+        'value' => SettingDTO::class,
     ];
 
 }
