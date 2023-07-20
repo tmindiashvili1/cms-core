@@ -10,7 +10,9 @@ use App\Domain\Core\DTO\SchemaSettings\SettingDTO;
 use App\Domain\Core\DTO\SchemaSettings\SettingsDTO;
 use App\Domain\Core\Models\StoreSetting;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 class ComponentStoreAction
 {
@@ -38,10 +40,10 @@ class ComponentStoreAction
             })->toArray()),
             'layoutsEdit' => LayoutNameSizeDTO::collection(
                 $componentStoreDTO->attributes->each(function (AttributeDTO $attributeDTO) {
-                    return [
+                    return LayoutNameSizeDTO::from([
                         'name' => $attributeDTO->name,
                         'size' => 12
-                    ];
+                    ]);
                 })->toArray()
             ),
             'isComponent' => true
@@ -52,6 +54,15 @@ class ComponentStoreAction
         ],[
             'value' => $dto,
         ]);
+
+        $path = app_path('Domain/Component/'.Str::kebab(Str::lower($componentStoreDTO->name)).'/schema.json');
+        $directory = dirname($path);
+        if (!File::isDirectory($directory)) {
+            // If the directory does not exist, make the directory
+            File::makeDirectory($directory, 0775, true);
+        }
+
+        File::put($path, $componentStoreDTO->toJson());
 
         $schemaAction = $componentStoreDTO->existTable() ? 'table' : 'create';
 
