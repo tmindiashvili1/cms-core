@@ -3,11 +3,14 @@
 namespace App\Domain\ContentTypeBuilder\Actions\Component;
 
 use App\Domain\ContentTypeBuilder\DTO\Components\ComponentStoreDTO;
+use App\Domain\Core\DTO\DatabaseSchema\ColumnSchemaDTO;
+use App\Domain\Core\DTO\DatabaseSchema\TableSchemaDTO;
 use App\Domain\Core\DTO\Schema\AttributeDTO;
 use App\Domain\Core\DTO\SchemaSettings\LayoutNameSizeDTO;
 use App\Domain\Core\DTO\SchemaSettings\MetadataDTO;
 use App\Domain\Core\DTO\SchemaSettings\SettingDTO;
 use App\Domain\Core\DTO\SchemaSettings\SettingsDTO;
+use App\Domain\Core\Models\DatabaseSchema;
 use App\Domain\Core\Models\StoreSetting;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\File;
@@ -22,6 +25,13 @@ class ComponentStoreAction
         /** @var AttributeDTO $firstAttribute */
         $firstAttribute = $componentStoreDTO->attributes->first();
 
+//        dd($componentStoreDTO->attributes->toCollection()->map(function (AttributeDTO $attributeDTO) {
+//            return LayoutNameSizeDTO::from([
+//                'name' => $attributeDTO->name,
+//                'size' => 12
+//            ]);
+//        })->toArray());
+
         $dto = SettingDTO::from([
             'uid' => $componentStoreDTO->getUid(),
             'settings' => SettingsDTO::from([
@@ -35,11 +45,11 @@ class ComponentStoreAction
             ]),
             'layoutsList' => array_merge([
                 'id'
-            ],$componentStoreDTO->attributes->each(function (AttributeDTO $attributeDTO) {
+            ],$componentStoreDTO->attributes->toCollection()->map(function (AttributeDTO $attributeDTO) {
                 return $attributeDTO->getFieldName();
             })->toArray()),
             'layoutsEdit' => LayoutNameSizeDTO::collection(
-                $componentStoreDTO->attributes->each(function (AttributeDTO $attributeDTO) {
+                $componentStoreDTO->attributes->toCollection()->map(function (AttributeDTO $attributeDTO) {
                     return LayoutNameSizeDTO::from([
                         'name' => $attributeDTO->name,
                         'size' => 12
@@ -47,6 +57,37 @@ class ComponentStoreAction
                 })->toArray()
             ),
             'isComponent' => true
+        ]);
+
+        $schemaDTO = TableSchemaDTO::from([
+            'name' => $componentStoreDTO->getTableName(),
+            'columns' => array_merge([
+                ColumnSchemaDTO::from([
+                    'args' => [['primary' => true, 'primaryKey' => true]],
+                    'name' => 'id',
+                    'type' => 'increments',
+                    'unsigned' => false,
+                    'defaultTo' => null,
+                    'notNullable' => true,
+                ]),
+            ],$componentStoreDTO->attributes->toCollection()->map(function (AttributeDTO $attributeDTO) {
+                return ColumnSchemaDTO::From([
+                    'args' => [
+                        'maxLength' => $attributeDTO->maxLength,
+                    ],
+                    'name' => $attributeDTO->getFieldName(),
+                    'type' => $attributeDTO->type->value,
+                    'unsigned' => false,
+                    'defaultTo' => $attributeDTO->default,
+                    'notNullable' => $attributeDTO->nullable,
+                ]);
+            })->toArray()),
+        ]);
+
+        DatabaseSchema::updateOrCreate([
+            'table_name' => $componentStoreDTO->getTableName(),
+        ],[
+            'schema' => $schemaDTO,
         ]);
 
         StoreSetting::updateOrCreate([
@@ -58,7 +99,6 @@ class ComponentStoreAction
         $path = app_path('Domain/Component/'.Str::kebab(Str::lower($componentStoreDTO->name)).'/schema.json');
         $directory = dirname($path);
         if (!File::isDirectory($directory)) {
-            // If the directory does not exist, make the directory
             File::makeDirectory($directory, 0775, true);
         }
 

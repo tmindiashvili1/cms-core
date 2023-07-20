@@ -23,6 +23,7 @@ class AttributeDTO extends Data
         public ?PluginOptionsDTO $pluginOptions,
         public ?int $maxLength = 255,
         public bool $private = false,
+        public bool $nullable = true,
     )
     {
     }
